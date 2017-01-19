@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Bubble Sort Visualizer</title>
+	<script type="text/javascript" src="raphael.js"></script>
+	<script type="text/css">
+		#canvas-container{
+		width: 800px;
+		border: 1px solid #aaa;
+	}
+</script>
+</head>
+<body>
+	<div id="canvas-container"/>
+	<script type="text/javascript">
+
+		"use strict;"	
+
+		//care it does not give bounding box points..but horizontally middle and vetically lowest,(invert y)
+		function getProperPointsWithInvert(x,y,w,h){return [x-w/2,totalHeight-(y+h),w,h];}
+		class Axis{
+			constructor(length,offset,division){
+				this.length = length;
+				this.division = division;
+				this.offset = offset;
+			}
+			getDistanceOf(n){
+				return this.offset+(this.length-this.offset)*n/this.division;
+			}
+			getSeparation(){
+				return (this.length-this.offset)/this.division/2;
+			}
+		}
+
+		const values = [20,70,52,12,53,39,43,77,63,5,45];
+
+		if(values.length<=2){
+			alert('values should contain more then 1 elements');
+		throw new Error('values should contain more then 1 elements');	
+		}
+		
+
+
+		
+		
+		
+		const movementTime = 300;
+		const holdTime = 250;
+		const normalColor = '#888';
+		const heavyColor = 'red';
+		const lightColor = 'green';
+		
+		var totalHeight = 400;
+		var totalWidth = 800;
+		var paper= new Raphael("canvas-container", totalWidth,totalHeight);
+		var xAxis  = new Axis(totalWidth,50,values.length);
+		var yAxis = new Axis(totalHeight,50,Math.max(...values))
+
+		var barWidth = xAxis.getSeparation();
+		var rects = new Array(values.length);
+		for (let i = 0;i<values.length; i++) {
+		var points = getProperPointsWithInvert(xAxis.getDistanceOf(i),0,barWidth,yAxis.getDistanceOf(values[i]));
+			var rect = paper.rect(...points);
+			rects[i] = rect;
+			rect.attr('fill',normalColor)
+			rect.attr('stroke-width',0);
+		}
+
+		// Bubble Sort
+		console.log(values);
+		var operations = new Array();
+		for(let i=0;i<values.length-1;i++){
+			for(let j=0;j<values.length-1-i;j++){
+			if(values[j]>values[j+1]){
+				var valueJ = values[j];
+				values[j]=values[j+1];
+				values[j+1] = valueJ;
+				operations.push(j);
+				}
+			}
+		}
+		console.log(values);
+
+		//Animating 
+		var interval = setInterval(
+			function(){
+				var j = operations.shift();
+				console.log('animation at '+j);
+
+				//Movement Animation
+				rects[j].animate({x:rects[j].getBBox().x+2*barWidth},movementTime);
+				rects[j+1].animate({x:rects[j+1].getBBox().x-2*barWidth},movementTime);
+
+				//Color Changing
+				rects[j].attr('fill',heavyColor);				
+				rects[j+1].attr('fill',lightColor);		
+
+				//Color Back to normal
+				setTimeout(
+					function(){
+						rects[j+1].attr('fill',normalColor);
+						rects[j].attr('fill',normalColor);
+						},movementTime+holdTime/2);//(When it will be fired, object will already be swaped)
+
+				
+
+				//Swap rectangles in array
+				var rectJ = rects[j];
+				rects[j] = rects[j+1];
+				rects[j+1] = rectJ;
+
+				if(operations.length===0)
+					clearInterval(interval);//End Animation
+
+			},movementTime+holdTime);
+		
+	</script>
+	
+
+</body>
+</html>
